@@ -1,6 +1,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local player = Players.LocalPlayer
+
 local punchAnimationIds = {
     "rbxassetid://3638729053",
     "rbxassetid://3638749874",
@@ -46,6 +47,7 @@ local function onCharacterAdded(char)
     local bp = player:WaitForChild("Backpack")
     local humanoid = char:WaitForChild("Humanoid")
     local hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
+
     repeat
         task.wait(0.1)
         if not char:FindFirstChild("Punch") then
@@ -55,19 +57,21 @@ local function onCharacterAdded(char)
             end
         end
     until char:FindFirstChild("Punch")
-    local punch = char:FindFirstChild("Punch")
+
+    local punch = char:FindFirstChild("Punch") or bp:FindFirstChild("Punch")
     if not punch or not hand then return end
     punch.attackTime.Value = 0
+
     RunService.Heartbeat:Connect(function()
         stopPunchAnimations(humanoid)
-        local currentTool = humanoid:FindFirstChildOfClass("Tool")
-        if currentTool and currentTool.Name ~= "Punch" then
-            local punchTool = bp:FindFirstChild("Punch")
-            if punchTool then
-                humanoid:EquipTool(punchTool)
-            end
+        local currentTool = player.Character and player.Character:FindFirstChildOfClass("Tool")
+        local punchTool = bp:FindFirstChild("Punch") or player.Character:FindFirstChild("Punch")
+
+        if currentTool and currentTool.Name ~= "Punch" and punchTool then
+            humanoid:EquipTool(punchTool)
         end
     end)
+
     autoKillLoop(punch, hand)
 end
 
