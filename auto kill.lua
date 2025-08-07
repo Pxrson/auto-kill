@@ -3,65 +3,76 @@ local plrs = game:GetService("Players")
 local rs = game:GetService("RunService")
 local lp = plrs.LocalPlayer
 local animIds = {"rbxassetid://3638729053","rbxassetid://3638749874","rbxassetid://3638767427","rbxassetid://102357151005774"}
-local conn
+
+local char, hum, hand, punch, anim
+local targets = {}
+local lastUpdate = 0
+
+local function updateCache()
+    char = lp.Character
+    if char then
+        hum = char:FindFirstChild("Humanoid")
+        hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
+        punch = char:FindFirstChild("Punch")
+        anim = hum and hum:FindFirstChild("Animator")
+    end
+end
+
+local function updateTargets()
+    targets = {}
+    for _, plr in pairs(plrs:GetPlayers()) do
+        if plr ~= lp and plr.Character then
+            local tgtHum = plr.Character:FindFirstChild("Humanoid")
+            local tgtRp = plr.Character:FindFirstChild("HumanoidRootPart")
+            if tgtHum and tgtHum.Health > 0 and tgtRp then
+                targets[#targets + 1] = {plr = plr, rp = tgtRp}
+            end
+        end
+    end
+end
 
 local function autokill()
-    if not lp.Character then return end
-    local hum = lp.Character:FindFirstChild("Humanoid")
-    local hand = lp.Character:FindFirstChild("LeftHand") or lp.Character:FindFirstChild("Left Arm")
-    local punch = lp.Character:FindFirstChild("Punch")
+    local tick = os.clock()
     
-    if not hum or not hand then return end
+    if tick - lastUpdate > 0.1 then
+        updateCache()
+        updateTargets()
+        lastUpdate = tick
+    end
     
     if not punch then
-        punch = lp.Backpack:FindFirstChild("Punch")
-        if punch then
-            hum:EquipTool(punch)
+        local tool = lp.Backpack:FindFirstChild("Punch")
+        if tool and hum then
+            hum:EquipTool(tool)
         end
         return
     end
     
     punch.attackTime.Value = 0
     
-    for _, plr in pairs(plrs:GetPlayers()) do
-        if plr ~= lp and plr.Character then
-            local tgtHum = plr.Character:FindFirstChild("Humanoid")
-            local tgtRp = plr.Character:FindFirstChild("HumanoidRootPart")
-            if tgtHum and tgtHum.Health > 0 and tgtRp then
-                for i = 1, 20 do
-                    punch:Activate()
-                    firetouchinterest(tgtRp, hand, 0)
-                    firetouchinterest(tgtRp, hand, 1)
-                end
-            end
-        end
+    for i = 1, #targets do
+        local target = targets[i]
+        punch:Activate()
+        firetouchinterest(target.rp, hand, 0)
+        firetouchinterest(target.rp, hand, 1)
     end
     
-    local anim = hum:FindFirstChild("Animator")
     if anim then
         for _, trk in pairs(anim:GetPlayingAnimationTracks()) do
             for _, id in pairs(animIds) do
                 if trk.Animation and trk.Animation.AnimationId == id then
                     trk:Stop()
+                    break
                 end
             end
         end
     end
 end
 
-if conn then conn:Disconnect() end
-conn = rs.Heartbeat:Connect(autokill)
+updateCache()
+rs.Heartbeat:Connect(autokill)
 
 lp.CharacterAdded:Connect(function()
-    if conn then conn:Disconnect() end
-    conn = rs.Heartbeat:Connect(autokill)
-end)
-
-spawn(function()
-    while true do
-        wait()
-        if not conn or not conn.Connected then
-            conn = rs.Heartbeat:Connect(autokill)
-        end
-    end
+    wait(0.1)
+    updateCache()
 end)
