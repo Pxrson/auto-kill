@@ -26,40 +26,28 @@ local function run()
         if plr ~= lp and plr.Character and plr.Character:FindFirstChild("Humanoid") then
             if plr.Character.Humanoid.Health > 0 then
                 punch:Activate()
-                firetouchinterest(plr.Character.HumanoidRootPart, hand, 0)
-                firetouchinterest(plr.Character.HumanoidRootPart, hand, 1)
+                pcall(firetouchinterest, plr.Character.HumanoidRootPart, hand, 0)
+                pcall(firetouchinterest, plr.Character.HumanoidRootPart, hand, 1)
             end
         end
     end
     
-    local anim = lp.Character.Humanoid:FindFirstChild("Animator")
-    if anim then
-        for _, trk in pairs(anim:GetPlayingAnimationTracks()) do
-            trk:Stop()
+    pcall(function()
+        for _, trk in pairs(lp.Character.Humanoid.Animator:GetPlayingAnimationTracks()) do
+            for _, id in pairs({"rbxassetid://3638729053","rbxassetid://3638749874","rbxassetid://3638767427","rbxassetid://102357151005774"}) do
+                if trk.Animation and trk.Animation.AnimationId == id then
+                    trk:Stop()
+                end
+            end
         end
-    end
+    end)
 end
 
 if conn then conn:Disconnect() end
 conn = rs.Heartbeat:Connect(run)
 
 lp.CharacterAdded:Connect(function()
+    wait()
     if conn then conn:Disconnect() end
     conn = rs.Heartbeat:Connect(run)
-end)
-
-spawn(function()
-    while true do
-        for _, plr in pairs(plrs:GetPlayers()) do
-            if plr ~= lp and plr.Character and lp.Character then
-                local punch = lp.Character:FindFirstChild("Punch")
-                local hand = lp.Character:FindFirstChild("LeftHand") or lp.Character:FindFirstChild("Left Arm")
-                if punch and hand and plr.Character:FindFirstChild("HumanoidRootPart") then
-                    punch:Activate()
-                    firetouchinterest(plr.Character.HumanoidRootPart, hand, 0)
-                    firetouchinterest(plr.Character.HumanoidRootPart, hand, 1)
-                end
-            end
-        end
-    end
 end)
