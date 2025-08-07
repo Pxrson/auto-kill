@@ -3,31 +3,36 @@ local plrs = game:GetService("Players")
 local rs = game:GetService("RunService")
 local lp = plrs.LocalPlayer
 
-local animIds = {"rbxassetid://3638729053","rbxassetid://3638749874","rbxassetid://3638767427","rbxassetid://102357151005774"}
 local conn
 
 local function run()
-    local char = lp.Character
-    if not char then return end
+    if not lp.Character then return end
     
-    local punch = char:FindFirstChild("Punch")
-    if not punch then
-        local bp = lp.Backpack:FindFirstChild("Punch")
-        if bp then char.Humanoid:EquipTool(bp) end
+    local equippedTool = lp.Character:FindFirstChildOfClass("Tool")
+    if not equippedTool or equippedTool.Name ~= "Punch" then
+        local punch = lp.Backpack:FindFirstChild("Punch")
+        if punch then
+            lp.Character.Humanoid:EquipTool(punch)
+        end
         return
     end
     
+    local punch = equippedTool
     punch.attackTime.Value = 0
     
+    local hand = lp.Character:FindFirstChild("LeftHand") or lp.Character:FindFirstChild("Left Arm")
+    
     for _, plr in pairs(plrs:GetPlayers()) do
-        if plr ~= lp and plr.Character and plr.Character.Humanoid.Health > 0 then
-            punch:Activate()
-            pcall(firetouchinterest, plr.Character.HumanoidRootPart, char.LeftHand or char["Left Arm"], 0)
-            pcall(firetouchinterest, plr.Character.HumanoidRootPart, char.LeftHand or char["Left Arm"], 1)
+        if plr ~= lp and plr.Character and plr.Character:FindFirstChild("Humanoid") then
+            if plr.Character.Humanoid.Health > 0 then
+                punch:Activate()
+                firetouchinterest(plr.Character.HumanoidRootPart, hand, 0)
+                firetouchinterest(plr.Character.HumanoidRootPart, hand, 1)
+            end
         end
     end
     
-    local anim = char.Humanoid.Animator
+    local anim = lp.Character.Humanoid:FindFirstChild("Animator")
     if anim then
         for _, trk in pairs(anim:GetPlayingAnimationTracks()) do
             trk:Stop()
@@ -36,9 +41,25 @@ local function run()
 end
 
 if conn then conn:Disconnect() end
-conn = rs.Stepped:Connect(run)
+conn = rs.Heartbeat:Connect(run)
 
 lp.CharacterAdded:Connect(function()
     if conn then conn:Disconnect() end
-    conn = rs.Stepped:Connect(run)
+    conn = rs.Heartbeat:Connect(run)
+end)
+
+spawn(function()
+    while true do
+        for _, plr in pairs(plrs:GetPlayers()) do
+            if plr ~= lp and plr.Character and lp.Character then
+                local punch = lp.Character:FindFirstChild("Punch")
+                local hand = lp.Character:FindFirstChild("LeftHand") or lp.Character:FindFirstChild("Left Arm")
+                if punch and hand and plr.Character:FindFirstChild("HumanoidRootPart") then
+                    punch:Activate()
+                    firetouchinterest(plr.Character.HumanoidRootPart, hand, 0)
+                    firetouchinterest(plr.Character.HumanoidRootPart, hand, 1)
+                end
+            end
+        end
+    end
 end)
