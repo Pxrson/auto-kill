@@ -30,77 +30,88 @@ end
 
 local function cleanup()
     for _, conn in pairs(conns) do
-        if conn then conn:Disconnect() end
+        if conn then 
+            pcall(function() conn:Disconnect() end)
+        end
     end
     conns = {}
 end
 
 local function killPlayer(p, punch, hand)
-    if p.Character then
-        local h = p.Character:FindFirstChild("Humanoid")
-        local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-        if h and h.Health > 0 and hrp then
+    if not p or not p.Character then return end
+    local h = p.Character:FindFirstChild("Humanoid")
+    local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+    if h and h.Health > 0 and hrp then
+        pcall(function()
             punch:Activate()
             firetouchinterest(hrp, hand, 0)
             firetouchinterest(hrp, hand, 1)
-        end
+        end)
     end
 end
 
 local function onChar(char)
+    if not char then return end
+    
     cleanup()
     
-    local hum = char:WaitForChild("Humanoid")
+    local hum = char:FindFirstChild("Humanoid")
+    if not hum then return end
+    
     local hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
     if not hand then return end
     
-    local punch
-    repeat
-        punch = char:FindFirstChild("Punch")
-        if not punch then
-            local tool = plr.Backpack:FindFirstChild("Punch")
-            if tool then
-                hum:EquipTool(tool)
-            end
-            rs.Heartbeat:Wait()
+    local punch = char:FindFirstChild("Punch")
+    if not punch then
+        local tool = plr.Backpack:FindFirstChild("Punch")
+        if tool then
+            pcall(function() hum:EquipTool(tool) end)
         end
-    until punch
+        return
+    end
     
     conns.main = rs.Heartbeat:Connect(function()
-        punch.attackTime.Value = 0
-        
-        local tool = hum:FindFirstChildOfClass("Tool")
-        if not tool or tool.Name ~= "Punch" then
-            local punchTool = plr.Backpack:FindFirstChild("Punch")
-            if punchTool then
-                hum:EquipTool(punchTool)
+        pcall(function()
+            punch.attackTime.Value = 0
+            
+            local tool = hum:FindFirstChildOfClass("Tool")
+            if not tool or tool.Name ~= "Punch" then
+                local punchTool = plr.Backpack:FindFirstChild("Punch")
+                if punchTool then
+                    hum:EquipTool(punchTool)
+                end
             end
-        end
-        
-        for _, p in pairs(plrs:GetPlayers()) do
-            if p ~= plr then
-                killPlayer(p, punch, hand)
+            
+            for _, p in pairs(plrs:GetPlayers()) do
+                if p ~= plr then
+                    killPlayer(p, punch, hand)
+                end
             end
-        end
-        
-        stopAnims(hum)
+            
+            stopAnims(hum)
+        end)
     end)
     
     conns.playerAdded = plrs.PlayerAdded:Connect(function(newPlr)
-        rs.Heartbeat:Wait()
-        killPlayer(newPlr, punch, hand)
-        
-        newPlr.CharacterAdded:Connect(function(newChar)
-            rs.Heartbeat:Wait()
+        pcall(function()
             killPlayer(newPlr, punch, hand)
+            
+            newPlr.CharacterAdded:Connect(function(newChar)
+                pcall(function()
+                    killPlayer(newPlr, punch, hand)
+                end)
+            end)
         end)
     end)
     
     for _, p in pairs(plrs:GetPlayers()) do
         if p ~= plr then
-            p.CharacterAdded:Connect(function(newChar)
-                rs.Heartbeat:Wait()
-                killPlayer(p, punch, hand)
+            pcall(function()
+                p.CharacterAdded:Connect(function(newChar)
+                    pcall(function()
+                        killPlayer(p, punch, hand)
+                    end)
+                end)
             end)
         end
     end
@@ -112,9 +123,8 @@ end
 
 plr.CharacterAdded:Connect(onChar)
 
-while true do
-    rs.Heartbeat:Wait()
+conns.checker = rs.Heartbeat:Connect(function()
     if plr.Character and plr.Character:FindFirstChild("Punch") and not conns.main then
         onChar(plr.Character)
     end
-end
+end)
