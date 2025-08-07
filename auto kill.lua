@@ -76,6 +76,8 @@ local function onChar(char)
                     punch:Activate()
                     firetouchinterest(hrp, hand, 0)
                     firetouchinterest(hrp, hand, 1)
+                    firetouchinterest(hrp, hand, 0)
+                    firetouchinterest(hrp, hand, 1)
                 end
             end
         end
@@ -84,18 +86,7 @@ local function onChar(char)
     end)
     
     conns.playerAdded = plrs.PlayerAdded:Connect(function(newPlr)
-        if newPlr.Character then
-            local h = newPlr.Character:FindFirstChild("Humanoid")
-            local hrp = newPlr.Character:FindFirstChild("HumanoidRootPart")
-            if h and h.Health > 0 and hrp then
-                punch:Activate()
-                firetouchinterest(hrp, hand, 0)
-                firetouchinterest(hrp, hand, 1)
-            end
-        end
-        
         newPlr.CharacterAdded:Connect(function(newChar)
-            rs.Heartbeat:Wait()
             local h = newChar:FindFirstChild("Humanoid")
             local hrp = newChar:FindFirstChild("HumanoidRootPart")
             if h and h.Health > 0 and hrp then
@@ -109,7 +100,6 @@ local function onChar(char)
     for _, p in pairs(plrs:GetPlayers()) do
         if p ~= plr and p.Character then
             p.CharacterAdded:Connect(function(newChar)
-                rs.Heartbeat:Wait()
                 local h = newChar:FindFirstChild("Humanoid")
                 local hrp = newChar:FindFirstChild("HumanoidRootPart")
                 if h and h.Health > 0 and hrp then
