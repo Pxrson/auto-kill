@@ -12,17 +12,17 @@ local punchAnims = {
 
 local hum, punch, hand, bp
 
-local function stopAnims(humanoid)
-    local animator = humanoid:FindFirstChildOfClass("Animator")
-    if animator then
-        for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
-            if track.Animation and table.find(punchAnims, track.Animation.AnimationId) then
-                track:Stop()
-                track:Destroy()
+local function stopAnims(h)
+    local a = h:FindFirstChildOfClass("Animator")
+    if a then
+        for _, t in ipairs(a:GetPlayingAnimationTracks()) do
+            if t.Animation and table.find(punchAnims, t.Animation.AnimationId) then
+                t:Stop()
+                t:Destroy()
             end
         end
     end
-    local tool = humanoid.Parent:FindFirstChild("Punch")
+    local tool = h.Parent:FindFirstChild("Punch")
     if tool then
         for _, anim in ipairs(tool:GetDescendants()) do
             if anim:IsA("Animation") and table.find(punchAnims, anim.AnimationId) then
@@ -41,11 +41,11 @@ local function equipPunch()
     end
 end
 
-local function initChar(char)
-    hum = char:WaitForChild("Humanoid")
+local function initChar(c)
+    hum = c:WaitForChild("Humanoid")
     bp = lp:WaitForChild("Backpack")
-    hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
-    punch = char:FindFirstChild("Punch") or bp:FindFirstChild("Punch")
+    hand = c:FindFirstChild("LeftHand") or c:FindFirstChild("Left Arm")
+    punch = c:FindFirstChild("Punch") or bp:FindFirstChild("Punch")
     if punch and punch:FindFirstChild("attackTime") then
         punch.attackTime.Value = 0
     end
@@ -57,26 +57,20 @@ if lp.Character then
     initChar(lp.Character)
 end
 
-rs.Heartbeat:Connect(function()
+rs.Stepped:Connect(function()
     if hum then
         stopAnims(hum)
         equipPunch()
-        if punch and punch:FindFirstChild("attackTime") then
-            punch.attackTime.Value = 0
-        end
     end
-end)
-
-rs.Stepped:Connect(function()
     if punch and punch.Parent and hand then
         punch.attackTime.Value = 0
         for _, plr in ipairs(plrs:GetPlayers()) do
             if plr ~= lp and plr.Character then
-                local th = plr.Character:FindFirstChild("HumanoidRootPart")
-                if th then
+                local thrp = plr.Character:FindFirstChild("HumanoidRootPart")
+                if thrp then
                     punch:Activate()
-                    firetouchinterest(th, hand, 0)
-                    firetouchinterest(th, hand, 1)
+                    firetouchinterest(thrp, hand, 0)
+                    firetouchinterest(thrp, hand, 1)
                 end
             end
         end
