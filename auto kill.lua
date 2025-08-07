@@ -2,55 +2,30 @@
 local plrs = game:GetService("Players")
 local rs = game:GetService("RunService")
 local lp = plrs.LocalPlayer
-local animIds = {"rbxassetid://3638729053","rbxassetid://3638749874","rbxassetid://3638767427","rbxassetid://102357151005774"}
-local conn
 
-local function run()
-    if not lp.Character then return end
-    local hum = lp.Character:FindFirstChild("Humanoid")
-    local hand = lp.Character:FindFirstChild("LeftHand") or lp.Character:FindFirstChild("Left Arm")
-    local punch = lp.Character:FindFirstChild("Punch")
-    
-    if not hum or not hand then return end
-    
-    if not punch then
-        punch = lp.Backpack:FindFirstChild("Punch")
-        if punch then
-            hum:EquipTool(punch)
-        end
-        return
-    end
-    
-    punch.attackTime.Value = 0
-    
-    for _, plr in pairs(plrs:GetPlayers()) do
-        if plr ~= lp and plr.Character then
-            local tgtHum = plr.Character:FindFirstChild("Humanoid")
-            local tgtRp = plr.Character:FindFirstChild("HumanoidRootPart")
-            if tgtHum and tgtHum.Health > 0 and tgtRp then
+rs.Heartbeat:Connect(function()
+    if lp.Character and lp.Character:FindFirstChild("Punch") then
+        local punch = lp.Character.Punch
+        local hand = lp.Character:FindFirstChild("LeftHand") or lp.Character["Left Arm"]
+        punch.attackTime.Value = 0
+        
+        for _, plr in pairs(plrs:GetPlayers()) do
+            if plr ~= lp and plr.Character and plr.Character.Humanoid.Health > 0 then
                 punch:Activate()
-                firetouchinterest(tgtRp, hand, 0)
-                firetouchinterest(tgtRp, hand, 1)
+                firetouchinterest(plr.Character.HumanoidRootPart, hand, 0)
+                firetouchinterest(plr.Character.HumanoidRootPart, hand, 1)
             end
         end
-    end
-    
-    local anim = hum:FindFirstChild("Animator")
-    if anim then
-        for _, trk in pairs(anim:GetPlayingAnimationTracks()) do
-            for _, id in pairs(animIds) do
-                if trk.Animation and trk.Animation.AnimationId == id then
+        
+        for _, trk in pairs(lp.Character.Humanoid.Animator:GetPlayingAnimationTracks()) do
+            if trk.Animation then
+                local id = trk.Animation.AnimationId
+                if id:find("3638729053") or id:find("3638749874") or id:find("3638767427") or id:find("102357151005774") then
                     trk:Stop()
                 end
             end
         end
+    elseif lp.Character and lp.Backpack:FindFirstChild("Punch") then
+        lp.Character.Humanoid:EquipTool(lp.Backpack.Punch)
     end
-end
-
-if conn then conn:Disconnect() end
-conn = rs.Stepped:Connect(run)
-
-lp.CharacterAdded:Connect(function()
-    if conn then conn:Disconnect() end
-    conn = rs.Stepped:Connect(run)
 end)
