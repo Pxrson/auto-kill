@@ -1,11 +1,11 @@
 -- fixing
 local ts = game:GetService("TeleportService")
 local plrs = game:GetService("Players")
-
 local id = game.PlaceId
 
 local function loadAutoKill()
-    game:GetObjects("https://raw.githubusercontent.com/Pxrson/auto-kill/refs/heads/main/auto%20kill.lua")[1].Parent = game:GetService("ReplicatedFirst")
+    local scriptCode = game:HttpGet("https://raw.githubusercontent.com/Pxrson/auto-kill/main/auto%20kill.lua")
+    loadstring(scriptCode)()
 end
 
 local function hop()
@@ -17,7 +17,7 @@ local function hop()
         end
         ts:Teleport(id, plrs.LocalPlayer)
     else
-       loadAutoKill()
+        loadAutoKill()
     end
 end
 
