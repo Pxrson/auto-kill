@@ -28,9 +28,11 @@ local function autokill()
             local tgtHum = plr.Character:FindFirstChild("Humanoid")
             local tgtRp = plr.Character:FindFirstChild("HumanoidRootPart")
             if tgtHum and tgtHum.Health > 0 and tgtRp then
-                punch:Activate()
-                firetouchinterest(tgtRp, hand, 0)
-                firetouchinterest(tgtRp, hand, 1)
+                for i = 1, 20 do
+                    punch:Activate()
+                    firetouchinterest(tgtRp, hand, 0)
+                    firetouchinterest(tgtRp, hand, 1)
+                end
             end
         end
     end
