@@ -2,88 +2,63 @@
 -- used a bit of ai for help DONT KILL ME OK IM SORRY
 local plrs = game:GetService("Players")
 local rs = game:GetService("RunService")
-local plr = plrs.LocalPlayer
+local lp = plrs.LocalPlayer
 
-local animIds = {
-    "rbxassetid://3638729053",
-    "rbxassetid://3638749874", 
-    "rbxassetid://3638767427",
-    "rbxassetid://102357151005774",
-}
+local animIds = {"rbxassetid://3638729053","rbxassetid://3638749874","rbxassetid://3638767427","rbxassetid://102357151005774"}
+local conn
 
-local conns = {}
-
-local function stopAnims(hum)
-    local animator = hum:FindFirstChildOfClass("Animator")
-    if not animator then return end
+local function run()
+    if not lp.Character then return end
+    local hum = lp.Character:FindFirstChild("Humanoid")
+    local hand = lp.Character:FindFirstChild("LeftHand") or lp.Character:FindFirstChild("Left Arm")
+    local punch = lp.Character:FindFirstChild("Punch") or lp.Backpack:FindFirstChild("Punch")
     
-    for _, track in pairs(animator:GetPlayingAnimationTracks()) do
-        local id = track.Animation.AnimationId
-        for _, animId in pairs(animIds) do
-            if id == animId then
-                track:Stop()
-                break
+    if not hum or not hand then return end
+    
+    if punch and punch.Parent == lp.Backpack then
+        hum:EquipTool(punch)
+        punch = lp.Character:WaitForChild("Punch")
+    end
+    
+    if not punch then return end
+    
+    if punch.attackTime then punch.attackTime.Value = 0 end
+    
+    for _, plr in pairs(plrs:GetPlayers()) do
+        if plr ~= lp and plr.Character then
+            local tgtHum = plr.Character:FindFirstChild("Humanoid")
+            local tgtRp = plr.Character:FindFirstChild("HumanoidRootPart")
+            if tgtHum and tgtHum.Health > 0 and tgtRp then
+                punch:Activate()
+                pcall(firetouchinterest, tgtRp, hand, 0)
+                pcall(firetouchinterest, tgtRp, hand, 1)
             end
         end
     end
-end
-
-local function onChar(char)
-    for _, conn in pairs(conns) do
-        if conn then conn:Disconnect() end
-    end
-    conns = {}
     
-    local hum = char:WaitForChild("Humanoid")
-    local hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
-    if not hand then return end
-    
-    local punch
-    repeat
-        punch = char:FindFirstChild("Punch")
-        if not punch then
-            local tool = plr.Backpack:FindFirstChild("Punch")
-            if tool then
-                hum:EquipTool(tool)
-            end
-        end
-    until punch
-    
-    conns.main = rs.Heartbeat:Connect(function()
-        punch.attackTime.Value = 0
-        
-        local tool = hum:FindFirstChildOfClass("Tool")
-        if not tool or tool.Name ~= "Punch" then
-            local punchTool = plr.Backpack:FindFirstChild("Punch")
-            if punchTool then
-                hum:EquipTool(punchTool)
-            end
-        end
-        
-        for _, p in pairs(plrs:GetPlayers()) do
-            if p ~= plr and p.Character then
-                local h = p.Character:FindFirstChild("Humanoid")
-                local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-                if h and h.Health > 0 and hrp then
-                    punch:Activate()
-                    firetouchinterest(hrp, hand, 0)
-                    firetouchinterest(hrp, hand, 1)
+    local anim = hum:FindFirstChild("Animator")
+    if anim then
+        for _, trk in pairs(anim:GetPlayingAnimationTracks()) do
+            for _, id in pairs(animIds) do
+                if trk.Animation and trk.Animation.AnimationId == id then
+                    trk:Stop()
                 end
             end
         end
-        
-        stopAnims(hum)
-    end)
-end
-
-if plr.Character then 
-    onChar(plr.Character) 
-end
-
-plr.CharacterAdded:Connect(onChar)
-
-while true do
-    if plr.Character and plr.Character:FindFirstChild("Punch") and not conns.main then
-        onChar(plr.Character)
     end
 end
+
+if conn then conn:Disconnect() end
+conn = rs.Heartbeat:Connect(function()
+    run()
+    wait(0.1)
+end)
+
+lp.CharacterAdded:Connect(function()
+    wait(0.1)
+    if conn then conn:Disconnect() end
+    conn = rs.Heartbeat:Connect(function()
+        run()
+        wait(0.1)
+    end)
+end)
