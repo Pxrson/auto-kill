@@ -28,29 +28,11 @@ local function stopAnims(hum)
     end
 end
 
-local function cleanup()
+local function onChar(char)
     for _, conn in pairs(conns) do
         if conn then conn:Disconnect() end
     end
     conns = {}
-end
-
-local function killPlayer(p, punch, hand)
-    if p.Character then
-        local h = p.Character:FindFirstChild("Humanoid")
-        local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-        if h and h.Health > 0 and hrp then
-            punch:Activate()
-            firetouchinterest(hrp, hand, 0)
-            firetouchinterest(hrp, hand, 1)
-            firetouchinterest(hrp, hand, 0)
-            firetouchinterest(hrp, hand, 1)
-        end
-    end
-end
-
-local function onChar(char)
-    cleanup()
     
     local hum = char:WaitForChild("Humanoid")
     local hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
@@ -79,29 +61,19 @@ local function onChar(char)
         end
         
         for _, p in pairs(plrs:GetPlayers()) do
-            if p ~= plr then
-                killPlayer(p, punch, hand)
+            if p ~= plr and p.Character then
+                local h = p.Character:FindFirstChild("Humanoid")
+                local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+                if h and h.Health > 0 and hrp then
+                    punch:Activate()
+                    firetouchinterest(hrp, hand, 0)
+                    firetouchinterest(hrp, hand, 1)
+                end
             end
         end
         
         stopAnims(hum)
     end)
-    
-    conns.playerAdded = plrs.PlayerAdded:Connect(function(newPlr)
-        killPlayer(newPlr, punch, hand)
-        
-        newPlr.CharacterAdded:Connect(function(newChar)
-            killPlayer(newPlr, punch, hand)
-        end)
-    end)
-    
-    for _, p in pairs(plrs:GetPlayers()) do
-        if p ~= plr then
-            p.CharacterAdded:Connect(function(newChar)
-                killPlayer(p, punch, hand)
-            end)
-        end
-    end
 end
 
 if plr.Character then 
