@@ -32,18 +32,15 @@ local function oc(char)
     local hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
     if not hand then return end
     
-    local p
-    repeat
-        p = char:FindFirstChild("Punch")
+    r = true
+    c.m = rs.Heartbeat:Connect(function()
+        local p = char:FindFirstChild("Punch")
         if not p then
             local t = lp.Backpack:FindFirstChild("Punch")
             if t then h:EquipTool(t) end
-            rs.Heartbeat:Wait()
+            return
         end
-    until p
-    
-    r = true
-    c.m = rs.Heartbeat:Connect(function()
+        
         p.attackTime.Value = 0
         local t = h:FindFirstChildOfClass("Tool")
         if not t or t.Name ~= "Punch" then
@@ -51,12 +48,18 @@ local function oc(char)
             if pt then h:EquipTool(pt) end
         end
         
-        for _, pl in pairs(ps:GetPlayers()) do
+        local pls = ps:GetPlayers()
+        for i = 1, #pls do
+            local pl = pls[i]
             if pl ~= lp and pl.Character then
                 local ph = pl.Character:FindFirstChild("Humanoid")
                 local phrp = pl.Character:FindFirstChild("HumanoidRootPart")
                 if ph and ph.Health > 0 and phrp then
                     p:Activate()
+                    firetouchinterest(phrp, hand, 0)
+                    firetouchinterest(phrp, hand, 1)
+                    firetouchinterest(phrp, hand, 0)
+                    firetouchinterest(phrp, hand, 1)
                     firetouchinterest(phrp, hand, 0)
                     firetouchinterest(phrp, hand, 1)
                 end
@@ -66,37 +69,38 @@ local function oc(char)
     end)
     
     c.pa = ps.PlayerAdded:Connect(function(np)
-        if np.Character then
-            local ph = np.Character:FindFirstChild("Humanoid")
-            local phrp = np.Character:FindFirstChild("HumanoidRootPart")
-            if ph and ph.Health > 0 and phrp then
-                p:Activate()
-                firetouchinterest(phrp, hand, 0)
-                firetouchinterest(phrp, hand, 1)
-            end
-        end
         np.CharacterAdded:Connect(function(nc)
-            rs.Heartbeat:Wait()
             local ph = nc:FindFirstChild("Humanoid")
             local phrp = nc:FindFirstChild("HumanoidRootPart")
             if ph and ph.Health > 0 and phrp then
-                p:Activate()
-                firetouchinterest(phrp, hand, 0)
-                firetouchinterest(phrp, hand, 1)
+                local p = char:FindFirstChild("Punch")
+                if p then
+                    p:Activate()
+                    firetouchinterest(phrp, hand, 0)
+                    firetouchinterest(phrp, hand, 1)
+                    firetouchinterest(phrp, hand, 0)
+                    firetouchinterest(phrp, hand, 1)
+                end
             end
         end)
     end)
     
-    for _, pl in pairs(ps:GetPlayers()) do
+    local pls = ps:GetPlayers()
+    for i = 1, #pls do
+        local pl = pls[i]
         if pl ~= lp and pl.Character then
             pl.CharacterAdded:Connect(function(nc)
-                rs.Heartbeat:Wait()
                 local ph = nc:FindFirstChild("Humanoid")
                 local phrp = nc:FindFirstChild("HumanoidRootPart")
                 if ph and ph.Health > 0 and phrp then
-                    p:Activate()
-                    firetouchinterest(phrp, hand, 0)
-                    firetouchinterest(phrp, hand, 1)
+                    local p = char:FindFirstChild("Punch")
+                    if p then
+                        p:Activate()
+                        firetouchinterest(phrp, hand, 0)
+                        firetouchinterest(phrp, hand, 1)
+                        firetouchinterest(phrp, hand, 0)
+                        firetouchinterest(phrp, hand, 1)
+                    end
                 end
             end)
         end
@@ -108,9 +112,9 @@ lp.CharacterAdded:Connect(oc)
 
 spawn(function()
     while true do
-        rs.Heartbeat:Wait()
         if not r and lp.Character and lp.Character:FindFirstChild("Punch") then
             oc(lp.Character)
         end
+        rs.Heartbeat:Wait()
     end
 end)
