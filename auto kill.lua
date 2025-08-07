@@ -48,9 +48,7 @@ local function oc(char)
             if pt then h:EquipTool(pt) end
         end
         
-        local pls = ps:GetPlayers()
-        for i = 1, #pls do
-            local pl = pls[i]
+        for _, pl in pairs(ps:GetPlayers()) do
             if pl ~= lp and pl.Character then
                 local ph = pl.Character:FindFirstChild("Humanoid")
                 local phrp = pl.Character:FindFirstChild("HumanoidRootPart")
@@ -79,9 +77,7 @@ local function oc(char)
         end)
     end)
     
-    local pls = ps:GetPlayers()
-    for i = 1, #pls do
-        local pl = pls[i]
+    for _, pl in pairs(ps:GetPlayers()) do
         if pl ~= lp and pl.Character then
             pl.CharacterAdded:Connect(function(nc)
                 local ph = nc:FindFirstChild("Humanoid")
@@ -102,11 +98,8 @@ end
 if lp.Character then oc(lp.Character) end
 lp.CharacterAdded:Connect(oc)
 
-spawn(function()
-    while true do
-        if not r and lp.Character and lp.Character:FindFirstChild("Punch") then
-            oc(lp.Character)
-        end
-        rs.Heartbeat:Wait()
+rs.Heartbeat:Connect(function()
+    if not r and lp.Character and lp.Character:FindFirstChild("Punch") then
+        oc(lp.Character)
     end
 end)
