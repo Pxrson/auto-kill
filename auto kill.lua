@@ -35,6 +35,20 @@ local function cleanup()
     conns = {}
 end
 
+local function killPlayer(p, punch, hand)
+    if p.Character then
+        local h = p.Character:FindFirstChild("Humanoid")
+        local hrp = p.Character:FindFirstChild("HumanoidRootPart")
+        if h and h.Health > 0 and hrp then
+            punch:Activate()
+            firetouchinterest(hrp, hand, 0)
+            firetouchinterest(hrp, hand, 1)
+            firetouchinterest(hrp, hand, 0)
+            firetouchinterest(hrp, hand, 1)
+        end
+    end
+end
+
 local function onChar(char)
     cleanup()
     
@@ -50,7 +64,6 @@ local function onChar(char)
             if tool then
                 hum:EquipTool(tool)
             end
-            rs.Heartbeat:Wait()
         end
     until punch
     
@@ -66,14 +79,8 @@ local function onChar(char)
         end
         
         for _, p in pairs(plrs:GetPlayers()) do
-            if p ~= plr and p.Character then
-                local h = p.Character:FindFirstChild("Humanoid")
-                local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-                if h and h.Health > 0 and hrp then
-                    punch:Activate()
-                    firetouchinterest(hrp, hand, 0)
-                    firetouchinterest(hrp, hand, 1)
-                end
+            if p ~= plr then
+                killPlayer(p, punch, hand)
             end
         end
         
@@ -81,39 +88,17 @@ local function onChar(char)
     end)
     
     conns.playerAdded = plrs.PlayerAdded:Connect(function(newPlr)
-        if newPlr.Character then
-            local h = newPlr.Character:FindFirstChild("Humanoid")
-            local hrp = newPlr.Character:FindFirstChild("HumanoidRootPart")
-            if h and h.Health > 0 and hrp then
-                punch:Activate()
-                firetouchinterest(hrp, hand, 0)
-                firetouchinterest(hrp, hand, 1)
-            end
-        end
+        killPlayer(newPlr, punch, hand)
         
         newPlr.CharacterAdded:Connect(function(newChar)
-            rs.Heartbeat:Wait()
-            local h = newChar:FindFirstChild("Humanoid")
-            local hrp = newChar:FindFirstChild("HumanoidRootPart")
-            if h and h.Health > 0 and hrp then
-                punch:Activate()
-                firetouchinterest(hrp, hand, 0)
-                firetouchinterest(hrp, hand, 1)
-            end
+            killPlayer(newPlr, punch, hand)
         end)
     end)
     
     for _, p in pairs(plrs:GetPlayers()) do
-        if p ~= plr and p.Character then
+        if p ~= plr then
             p.CharacterAdded:Connect(function(newChar)
-                rs.Heartbeat:Wait()
-                local h = newChar:FindFirstChild("Humanoid")
-                local hrp = newChar:FindFirstChild("HumanoidRootPart")
-                if h and h.Health > 0 and hrp then
-                    punch:Activate()
-                    firetouchinterest(hrp, hand, 0)
-                    firetouchinterest(hrp, hand, 1)
-                end
+                killPlayer(p, punch, hand)
             end)
         end
     end
@@ -126,7 +111,6 @@ end
 plr.CharacterAdded:Connect(onChar)
 
 while true do
-    rs.Heartbeat:Wait()
     if plr.Character and plr.Character:FindFirstChild("Punch") and not conns.main then
         onChar(plr.Character)
     end
