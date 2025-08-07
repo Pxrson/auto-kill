@@ -43,8 +43,6 @@ local function killPlayer(p, punch, hand)
             punch:Activate()
             firetouchinterest(hrp, hand, 0)
             firetouchinterest(hrp, hand, 1)
-            firetouchinterest(hrp, hand, 0)
-            firetouchinterest(hrp, hand, 1)
         end
     end
 end
@@ -64,6 +62,7 @@ local function onChar(char)
             if tool then
                 hum:EquipTool(tool)
             end
+            rs.Heartbeat:Wait()
         end
     until punch
     
@@ -88,9 +87,11 @@ local function onChar(char)
     end)
     
     conns.playerAdded = plrs.PlayerAdded:Connect(function(newPlr)
+        rs.Heartbeat:Wait()
         killPlayer(newPlr, punch, hand)
         
         newPlr.CharacterAdded:Connect(function(newChar)
+            rs.Heartbeat:Wait()
             killPlayer(newPlr, punch, hand)
         end)
     end)
@@ -98,6 +99,7 @@ local function onChar(char)
     for _, p in pairs(plrs:GetPlayers()) do
         if p ~= plr then
             p.CharacterAdded:Connect(function(newChar)
+                rs.Heartbeat:Wait()
                 killPlayer(p, punch, hand)
             end)
         end
@@ -111,6 +113,7 @@ end
 plr.CharacterAdded:Connect(onChar)
 
 while true do
+    rs.Heartbeat:Wait()
     if plr.Character and plr.Character:FindFirstChild("Punch") and not conns.main then
         onChar(plr.Character)
     end
