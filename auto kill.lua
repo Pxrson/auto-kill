@@ -5,43 +5,49 @@ local lp = plrs.LocalPlayer
 local animIds = {"rbxassetid://3638729053","rbxassetid://3638749874","rbxassetid://3638767427","rbxassetid://102357151005774"}
 
 rs.Heartbeat:Connect(function()
-    if not lp.Character then return end
-    local hum = lp.Character:FindFirstChild("Humanoid")
-    local hand = lp.Character:FindFirstChild("LeftHand") or lp.Character:FindFirstChild("Left Arm")
-    local punch = lp.Character:FindFirstChild("Punch")
-    
-    if not hum or not hand then return end
-    
-    if not punch then
-        punch = lp.Backpack:FindFirstChild("Punch")
-        if punch then
-            hum:EquipTool(punch)
-        end
-        return
-    end
-    
-    punch.attackTime.Value = 0
-    
-    for _, plr in pairs(plrs:GetPlayers()) do
-        if plr ~= lp and plr.Character then
-            local tgtHum = plr.Character:FindFirstChild("Humanoid")
-            local tgtRp = plr.Character:FindFirstChild("HumanoidRootPart")
-            if tgtHum and tgtHum.Health > 0 and tgtRp then
-                punch:Activate()
-                firetouchinterest(tgtRp, hand, 0)
-                firetouchinterest(tgtRp, hand, 1)
+    pcall(function()
+        if not lp.Character then return end
+        local hum = lp.Character:FindFirstChild("Humanoid")
+        local hand = lp.Character:FindFirstChild("LeftHand") or lp.Character:FindFirstChild("Left Arm")
+        local punch = lp.Character:FindFirstChild("Punch")
+        
+        if not hum or not hand then return end
+        
+        if not punch then
+            punch = lp.Backpack:FindFirstChild("Punch")
+            if punch then
+                hum:EquipTool(punch)
             end
+            return
         end
-    end
-    
-    local anim = hum:FindFirstChild("Animator")
-    if anim then
-        for _, trk in pairs(anim:GetPlayingAnimationTracks()) do
-            for _, id in pairs(animIds) do
-                if trk.Animation and trk.Animation.AnimationId == id then
-                    trk:Stop()
+        
+        punch.attackTime.Value = 0
+        
+        for _, plr in pairs(plrs:GetPlayers()) do
+            if plr ~= lp and plr.Character then
+                local tgtHum = plr.Character:FindFirstChild("Humanoid")
+                local tgtRp = plr.Character:FindFirstChild("HumanoidRootPart")
+                if tgtHum and tgtHum.Health > 0 and tgtRp then
+                    punch:Activate()
+                    firetouchinterest(tgtRp, hand, 0)
+                    firetouchinterest(tgtRp, hand, 1)
                 end
             end
         end
-    end
+        
+        local anim = hum:FindFirstChild("Animator")
+        if anim then
+            for _, trk in pairs(anim:GetPlayingAnimationTracks()) do
+                for _, id in pairs(animIds) do
+                    if trk.Animation and trk.Animation.AnimationId == id then
+                        trk:Stop()
+                    end
+                end
+            end
+        end
+    end)
+end)
+
+lp.CharacterAdded:Connect(function()
+    wait(0.1)
 end)
