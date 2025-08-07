@@ -1,4 +1,5 @@
 -- discord: .pxrson
+-- used a bit of ai for help DONT KILL ME OK IM SORRY
 local plrs = game:GetService("Players")
 local rs = game:GetService("RunService")
 local plr = plrs.LocalPlayer
