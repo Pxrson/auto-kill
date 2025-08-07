@@ -1,5 +1,4 @@
 -- discord: .pxrson
--- used a bit of ai for help DONT KILL ME OK IM SORRY
 local plrs = game:GetService("Players")
 local rs = game:GetService("RunService")
 local lp = plrs.LocalPlayer
@@ -49,16 +48,10 @@ local function run()
 end
 
 if conn then conn:Disconnect() end
-conn = rs.Heartbeat:Connect(function()
-    run()
-    wait(0.1)
-end)
+conn = rs.Heartbeat:Connect(run)
 
 lp.CharacterAdded:Connect(function()
     wait(0.1)
     if conn then conn:Disconnect() end
-    conn = rs.Heartbeat:Connect(function()
-        run()
-        wait(0.1)
-    end)
+    conn = rs.Heartbeat:Connect(run)
 end)
