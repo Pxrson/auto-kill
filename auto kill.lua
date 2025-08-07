@@ -1,96 +1,84 @@
 -- discord: .pxrson
 local plrs = game:GetService("Players")
 local rs = game:GetService("RunService")
-
 local lp = plrs.LocalPlayer
 
-local pids = {
+local punchAnims = {
     "rbxassetid://3638729053",
     "rbxassetid://3638749874",
     "rbxassetid://3638767427",
     "rbxassetid://102357151005774",
 }
 
-local function stopanims(h)
-    local a = h:FindFirstChildOfClass("Animator")
-    if a then
-        for _, t in ipairs(a:GetPlayingAnimationTracks()) do
-            local aid = t.Animation and t.Animation.AnimationId
-            if aid and table.find(pids, aid) then
-                t:Stop()
-                t:Destroy()
+local hum, punch, hand, bp
+
+local function stopAnims(humanoid)
+    local animator = humanoid:FindFirstChildOfClass("Animator")
+    if animator then
+        for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
+            if track.Animation and table.find(punchAnims, track.Animation.AnimationId) then
+                track:Stop()
+                track:Destroy()
             end
         end
     end
-    local tool = h.Parent:FindFirstChild("Punch")
+    local tool = humanoid.Parent:FindFirstChild("Punch")
     if tool then
-        for _, obj in ipairs(tool:GetDescendants()) do
-            if obj:IsA("Animation") and table.find(pids, obj.AnimationId) then
-                obj:Destroy()
+        for _, anim in ipairs(tool:GetDescendants()) do
+            if anim:IsA("Animation") and table.find(punchAnims, anim.AnimationId) then
+                anim:Destroy()
             end
         end
     end
 end
 
-local function onchar(c)
-    local bp = lp:WaitForChild("Backpack")
-    local h = c:WaitForChild("Humanoid")
-    local hand = c:FindFirstChild("LeftHand") or c:FindFirstChild("Left Arm")
-
-    repeat
-        task.wait(0.1)
-        local punch = bp:FindFirstChild("Punch")
-        if punch then
-            h:EquipTool(punch)
+local function equipPunch()
+    if bp and hum then
+        local tool = bp:FindFirstChild("Punch")
+        if tool and not hum:IsEquipped(tool) then
+            hum:EquipTool(tool)
         end
-    until c:FindFirstChild("Punch")
+    end
+end
 
-    local punch = c:FindFirstChild("Punch") or bp:FindFirstChild("Punch")
-    if not punch or not hand then return end
-
-    if punch:FindFirstChild("attackTime") then
+local function initChar(char)
+    hum = char:WaitForChild("Humanoid")
+    bp = lp:WaitForChild("Backpack")
+    hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
+    punch = char:FindFirstChild("Punch") or bp:FindFirstChild("Punch")
+    if punch and punch:FindFirstChild("attackTime") then
         punch.attackTime.Value = 0
     end
+    equipPunch()
+end
 
-    rs.Heartbeat:Connect(function()
-        stopanims(h)
-        local curr = c:FindFirstChildOfClass("Tool")
-        local punchtool = bp:FindFirstChild("Punch") or c:FindFirstChild("Punch")
-        if (not curr or curr.Name ~= "Punch") and punchtool and punchtool.Parent == bp then
-            h:EquipTool(punchtool)
-        end
-    end)
+lp.CharacterAdded:Connect(initChar)
+if lp.Character then
+    initChar(lp.Character)
+end
 
-    rs.Heartbeat:Connect(function()
+rs.Heartbeat:Connect(function()
+    if hum then
+        stopAnims(hum)
+        equipPunch()
         if punch and punch:FindFirstChild("attackTime") then
             punch.attackTime.Value = 0
         end
-    end)
+    end
+end)
 
-    rs.Stepped:Connect(function()
-        if not punch or not punch.Parent then return end
-        if punch:FindFirstChild("attackTime") then
-            punch.attackTime.Value = 0
-        end
+rs.Stepped:Connect(function()
+    if punch and punch.Parent and hand then
+        punch.attackTime.Value = 0
         for _, plr in ipairs(plrs:GetPlayers()) do
             if plr ~= lp and plr.Character then
-                local th = plr.Character:FindFirstChild("Humanoid")
-                local thrp = plr.Character:FindFirstChild("HumanoidRootPart")
-                if th and thrp and th.Health > 0 then
+                local th = plr.Character:FindFirstChild("HumanoidRootPart")
+                if th then
                     punch:Activate()
-                    firetouchinterest(thrp, hand, 0)
-                    firetouchinterest(thrp, hand, 1)
+                    firetouchinterest(th, hand, 0)
+                    firetouchinterest(th, hand, 1)
                 end
             end
         end
-    end)
-end
-
-plrs.PlayerAdded:Connect(function(p)
-    p.CharacterAdded:Connect(onchar)
+    end
 end)
-
-lp.CharacterAdded:Connect(onchar)
-if lp.Character then
-    onchar(lp.Character)
-end
