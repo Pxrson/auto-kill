@@ -20,52 +20,50 @@ local function setupChar(c)
     if punch and punch:FindFirstChild("attackTime") then
         punch.attackTime.Value = 0
     end
+    if punch and hum and not hum:IsEquipped(punch) then
+        hum:EquipTool(punch)
+    end
 end
 
 lp.CharacterAdded:Connect(setupChar)
-if lp.Character then
-    setupChar(lp.Character)
-end
+if lp.Character then setupChar(lp.Character) end
 
-local function stopAndEquip()
+rs.Heartbeat:Connect(function()
     if not hum or not bp then return end
-    local anim = hum:FindFirstChildOfClass("Animator")
-    if anim then
-        for _, t in ipairs(anim:GetPlayingAnimationTracks()) do
-            if t.Animation and table.find(anims, t.Animation.AnimationId) then
-                t:Stop()
-                t:Destroy()
+    local animator = hum:FindFirstChildOfClass("Animator")
+    if animator then
+        for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
+            if track.Animation and table.find(anims, track.Animation.AnimationId) then
+                track:Stop()
+                track:Destroy()
             end
         end
     end
     local tool = hum.Parent and hum.Parent:FindFirstChild("Punch")
     if tool then
-        for _, a in ipairs(tool:GetDescendants()) do
-            if a:IsA("Animation") and table.find(anims, a.AnimationId) then
-                a:Destroy()
+        for _, anim in ipairs(tool:GetDescendants()) do
+            if anim:IsA("Animation") and table.find(anims, anim.AnimationId) then
+                anim:Destroy()
             end
         end
     end
-    local punchTool = bp:FindFirstChild("Punch")
-    if punchTool and not hum:IsEquipped(punchTool) then
-        hum:EquipTool(punchTool)
-        punch = punchTool
+    local toolInBp = bp:FindFirstChild("Punch")
+    if toolInBp and not hum:IsEquipped(toolInBp) then
+        hum:EquipTool(toolInBp)
+        punch = toolInBp
     end
     if punch and punch:FindFirstChild("attackTime") then
         punch.attackTime.Value = 0
     end
-end
-
-rs.Heartbeat:Connect(stopAndEquip)
+end)
 
 rs.Stepped:Connect(function()
     if punch and punch.Parent and hand then
         punch.attackTime.Value = 0
         for _, p in ipairs(plrs:GetPlayers()) do
-            if p ~= lp and p.Character then
+            if p ~= lp and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
                 local hrp = p.Character:FindFirstChild("HumanoidRootPart")
-                local h = p.Character:FindFirstChild("Humanoid")
-                if hrp and h and h.Health > 0 then
+                if hrp then
                     punch:Activate()
                     firetouchinterest(hrp, hand, 0)
                     firetouchinterest(hrp, hand, 1)
