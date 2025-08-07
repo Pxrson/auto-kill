@@ -1,124 +1,116 @@
 -- discord: .pxrson
 -- used a bit of ai for help DONT KILL ME OK IM SORRY
-local plrs = game:GetService("Players")
+local ps = game:GetService("Players")
 local rs = game:GetService("RunService")
-local lp = plrs.LocalPlayer
+local lp = ps.LocalPlayer
 
-local st = {
-    run = false,
-    last = 0,
-    conn = {},
-    targs = {},
-    char = nil,
-    hum = nil,
-    tool = nil,
-    hand = nil
-}
+local aids = {"rbxassetid://3638729053","rbxassetid://3638749874","rbxassetid://3638767427","rbxassetid://102357151005774"}
 
-local function clean()
-    st.run = false
-    st.targs = {}
-    for _, c in pairs(st.conn) do
-        if c then c:Disconnect() end
-    end
-    st.conn = {}
-end
+local c = {}
+local r = false
 
-local function atk(targ)
-    if not st.tool or not st.hand then return end
-    local trp = targ.Character:FindFirstChild("HumanoidRootPart")
-    if not trp then return end
-    st.tool:Activate()
-    firetouchinterest(trp, st.hand, 0)
-    firetouchinterest(trp, st.hand, 1)
-    if st.tool:FindFirstChild("attackTime") then
-        st.tool.attackTime.Value = 0
+local function sa(h)
+    local a = h:FindFirstChildOfClass("Animator")
+    if not a then return end
+    for _, t in pairs(a:GetPlayingAnimationTracks()) do
+        local id = t.Animation.AnimationId
+        for _, aid in pairs(aids) do
+            if id == aid then t:Stop() break end
+        end
     end
 end
 
-local function loop()
-    if not st.run or not st.char then return end
-    local ct = tick()
-    if ct - st.last < 0.001 then return end
+local function cl()
+    r = false
+    for _, conn in pairs(c) do if conn then conn:Disconnect() end end
+    c = {}
+end
+
+local function oc(char)
+    cl()
+    local h = char:WaitForChild("Humanoid")
+    local hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
+    if not hand then return end
     
-    st.targs = {}
-    for _, p in pairs(plrs:GetPlayers()) do
-        if p ~= lp and p.Character then
-            local h = p.Character:FindFirstChild("Humanoid")
-            local rp = p.Character:FindFirstChild("HumanoidRootPart")
-            if h and h.Health > 0 and rp then
-                local dist = (st.char.HumanoidRootPart.Position - rp.Position).Magnitude
-                if dist <= 50 then
-                    table.insert(st.targs, p)
+    local p
+    repeat
+        p = char:FindFirstChild("Punch")
+        if not p then
+            local t = lp.Backpack:FindFirstChild("Punch")
+            if t then h:EquipTool(t) end
+            rs.Heartbeat:Wait()
+        end
+    until p
+    
+    r = true
+    c.m = rs.Heartbeat:Connect(function()
+        p.attackTime.Value = 0
+        local t = h:FindFirstChildOfClass("Tool")
+        if not t or t.Name ~= "Punch" then
+            local pt = lp.Backpack:FindFirstChild("Punch")
+            if pt then h:EquipTool(pt) end
+        end
+        
+        for _, pl in pairs(ps:GetPlayers()) do
+            if pl ~= lp and pl.Character then
+                local ph = pl.Character:FindFirstChild("Humanoid")
+                local phrp = pl.Character:FindFirstChild("HumanoidRootPart")
+                if ph and ph.Health > 0 and phrp then
+                    p:Activate()
+                    firetouchinterest(phrp, hand, 0)
+                    firetouchinterest(phrp, hand, 1)
                 end
             end
         end
-    end
+        sa(h)
+    end)
     
-    for _, t in pairs(st.targs) do
-        if t.Character and t.Character:FindFirstChild("Humanoid") and t.Character:FindFirstChild("Humanoid").Health > 0 then
-            atk(t)
+    c.pa = ps.PlayerAdded:Connect(function(np)
+        if np.Character then
+            local ph = np.Character:FindFirstChild("Humanoid")
+            local phrp = np.Character:FindFirstChild("HumanoidRootPart")
+            if ph and ph.Health > 0 and phrp then
+                p:Activate()
+                firetouchinterest(phrp, hand, 0)
+                firetouchinterest(phrp, hand, 1)
+            end
         end
-    end
-    
-    st.last = ct
-end
-
-local function init(char)
-    clean()
-    st.char = char
-    st.hum = char:WaitForChild("Humanoid")
-    st.hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
-    if not st.hand then return end
-    
-    local bp = lp.Backpack
-    local pt = bp:FindFirstChild("Punch")
-    if pt then
-        st.hum:EquipTool(pt)
-        st.tool = st.hum:FindFirstChildOfClass("Tool")
-    end
-    
-    repeat
-        st.tool = st.hum:FindFirstChildOfClass("Tool")
-        if not st.tool then
-            local t = lp.Backpack:FindFirstChild("Punch")
-            if t then st.hum:EquipTool(t) end
-            rs.Heartbeat:Wait()
-        end
-    until st.tool
-    
-    st.run = true
-    st.conn.main = rs.Heartbeat:Connect(loop)
-    
-    st.conn.pa = plrs.PlayerAdded:Connect(function(np)
         np.CharacterAdded:Connect(function(nc)
             rs.Heartbeat:Wait()
-            if st.run and np.Character and np.Character:FindFirstChild("Humanoid") and np.Character:FindFirstChild("Humanoid").Health > 0 then
-                atk(np)
+            local ph = nc:FindFirstChild("Humanoid")
+            local phrp = nc:FindFirstChild("HumanoidRootPart")
+            if ph and ph.Health > 0 and phrp then
+                p:Activate()
+                firetouchinterest(phrp, hand, 0)
+                firetouchinterest(phrp, hand, 1)
             end
         end)
     end)
     
-    for _, p in pairs(plrs:GetPlayers()) do
-        if p ~= lp then
-            p.CharacterAdded:Connect(function(nc)
+    for _, pl in pairs(ps:GetPlayers()) do
+        if pl ~= lp and pl.Character then
+            pl.CharacterAdded:Connect(function(nc)
                 rs.Heartbeat:Wait()
-                if st.run and p.Character and p.Character:FindFirstChild("Humanoid") and p.Character:FindFirstChild("Humanoid").Health > 0 then
-                    atk(p)
+                local ph = nc:FindFirstChild("Humanoid")
+                local phrp = nc:FindFirstChild("HumanoidRootPart")
+                if ph and ph.Health > 0 and phrp then
+                    p:Activate()
+                    firetouchinterest(phrp, hand, 0)
+                    firetouchinterest(phrp, hand, 1)
                 end
             end)
         end
     end
 end
 
-if lp.Character then init(lp.Character) end
-lp.CharacterAdded:Connect(init)
+if lp.Character then oc(lp.Character) end
+lp.CharacterAdded:Connect(oc)
 
 spawn(function()
     while true do
         rs.Heartbeat:Wait()
-        if not st.run and lp.Character and lp.Character:FindFirstChild("Punch") then
-            init(lp.Character)
+        if not r and lp.Character and lp.Character:FindFirstChild("Punch") then
+            oc(lp.Character)
         end
     end
 end)
