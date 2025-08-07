@@ -1,85 +1,83 @@
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local player = Players.LocalPlayer
+-- discord: .pxrson
+local rs = game:GetService("RunService")
+local plrs = game:GetService("Players")
+local plr = plrs.LocalPlayer
 
-local punchAnimationIds = {
+local punchAnims = {
     "rbxassetid://3638729053",
     "rbxassetid://3638749874",
     "rbxassetid://3638767427",
     "rbxassetid://102357151005774",
 }
 
-local function stopPunchAnimations(humanoid)
-    local animator = humanoid:FindFirstChildOfClass("Animator")
-    if animator then
-        for _, track in pairs(animator:GetPlayingAnimationTracks()) do
-            for _, animId in ipairs(punchAnimationIds) do
-                if track.Animation.AnimationId == animId then
-                    track:Stop()
-                    track:Destroy()
-                end
-            end
+local function stopPunchAnims(hum)
+    if not hum then return end
+    local anim = hum:FindFirstChildOfClass("Animator")
+    if not anim then return end
+    local tracks = anim:GetPlayingAnimationTracks()
+    for i = #tracks, 1, -1 do
+        local track = tracks[i]
+        local anim = track.Animation
+        if anim and table.find(punchAnims, anim.AnimationId) then
+            track:Stop(0)
+            track:Destroy()
         end
     end
 end
 
-local function autoKillLoop(punch, hand)
-    RunService.Heartbeat:Connect(function()
+local function onCharAdded(char)
+    local bp = plr:WaitForChild("Backpack")
+    local hum = char:WaitForChild("Humanoid")
+    local hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
+    local punchTool
+
+    repeat
+        task.wait(0.05)
+        punchTool = bp:FindFirstChild("Punch")
+        if punchTool then
+            hum:EquipTool(punchTool)
+        end
+    until punchTool
+
+    local punch = char:FindFirstChild("Punch") or punchTool
+    if not punch or not hand then return end
+    
+    punch.attackTime.Value = 0
+
+    rs.Heartbeat:Connect(function()       
+        local curTool = plr.Character and plr.Character:FindFirstChildOfClass("Tool")
+
+        if curTool and curTool.Name ~= "Punch" and punchTool then
+            curTool.Parent = bp
+            hum:EquipTool(punchTool)
+        elseif not curTool and punchTool then
+            hum:EquipTool(punchTool)
+        end
+        
         punch.attackTime.Value = 0
     end)
-    RunService.Stepped:Connect(function()
+
+    rs.Stepped:Connect(function()
         punch.attackTime.Value = 0
-        for _, plr in pairs(Players:GetPlayers()) do
-            if plr ~= player and plr.Character then
-                local targetHumanoid = plr.Character:FindFirstChild("Humanoid")
-                local targetHRP = plr.Character:FindFirstChild("HumanoidRootPart")
-                if targetHumanoid and targetHumanoid.Health > 0 and targetHRP then
+        stopPunchAnims(hum)
+        for _, otherPlr in ipairs(plrs:GetPlayers()) do
+            if otherPlr ~= plr and otherPlr.Character then
+                local targetHum = otherPlr.Character:FindFirstChild("Humanoid")
+                if targetHum and targetHum.Health > 0 then
                     punch:Activate()
-                    firetouchinterest(targetHRP, hand, 0)
-                    firetouchinterest(targetHRP, hand, 1)
+                    targetHum.Health = 0
                 end
             end
         end
     end)
 end
 
-local function onCharacterAdded(char)
-    local bp = player:WaitForChild("Backpack")
-    local humanoid = char:WaitForChild("Humanoid")
-    local hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
-
-    repeat
-        task.wait(0.1)
-        if not char:FindFirstChild("Punch") then
-            local punchTool = bp:FindFirstChild("Punch")
-            if punchTool then
-                humanoid:EquipTool(punchTool)
-            end
-        end
-    until char:FindFirstChild("Punch")
-
-    local punch = char:FindFirstChild("Punch") or bp:FindFirstChild("Punch")
-    if not punch or not hand then return end
-    punch.attackTime.Value = 0
-
-    RunService.Heartbeat:Connect(function()
-        stopPunchAnimations(humanoid)
-        local currentTool = player.Character and player.Character:FindFirstChildOfClass("Tool")
-        local punchTool = bp:FindFirstChild("Punch") or player.Character:FindFirstChild("Punch")
-
-        if currentTool and currentTool.Name ~= "Punch" and punchTool then
-            humanoid:EquipTool(punchTool)
-        end
-    end)
-
-    autoKillLoop(punch, hand)
-end
-
-Players.PlayerAdded:Connect(function(plr)
-    plr.CharacterAdded:Connect(onCharacterAdded)
+plrs.PlayerAdded:Connect(function(p)
+    p.CharacterAdded:Connect(onCharAdded)
 end)
 
-player.CharacterAdded:Connect(onCharacterAdded)
-if player.Character then
-    onCharacterAdded(player.Character)
+plr.CharacterAdded:Connect(onCharAdded)
+
+if plr.Character then
+    onCharAdded(plr.Character)
 end
