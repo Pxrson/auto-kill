@@ -48,10 +48,9 @@ local function run()
 end
 
 if conn then conn:Disconnect() end
-conn = rs.Heartbeat:Connect(run)
+conn = rs.Stepped:Connect(run)
 
 lp.CharacterAdded:Connect(function()
-    wait(0.1)
     if conn then conn:Disconnect() end
-    conn = rs.Heartbeat:Connect(run)
+    conn = rs.Stepped:Connect(run)
 end)
