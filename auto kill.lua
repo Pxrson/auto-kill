@@ -7,42 +7,30 @@ local animIds = {"rbxassetid://3638729053","rbxassetid://3638749874","rbxassetid
 local conn
 
 local function run()
-    if not lp.Character then return end
-    local hum = lp.Character:FindFirstChild("Humanoid")
-    local hand = lp.Character:FindFirstChild("LeftHand") or lp.Character:FindFirstChild("Left Arm")
-    local punch = lp.Character:FindFirstChild("Punch") or lp.Backpack:FindFirstChild("Punch")
+    local char = lp.Character
+    if not char then return end
     
-    if not hum or not hand then return end
-    
-    if punch and punch.Parent == lp.Backpack then
-        hum:EquipTool(punch)
-        punch = lp.Character:WaitForChild("Punch")
+    local punch = char:FindFirstChild("Punch")
+    if not punch then
+        local bp = lp.Backpack:FindFirstChild("Punch")
+        if bp then char.Humanoid:EquipTool(bp) end
+        return
     end
     
-    if not punch then return end
-    
-    if punch.attackTime then punch.attackTime.Value = 0 end
+    punch.attackTime.Value = 0
     
     for _, plr in pairs(plrs:GetPlayers()) do
-        if plr ~= lp and plr.Character then
-            local tgtHum = plr.Character:FindFirstChild("Humanoid")
-            local tgtRp = plr.Character:FindFirstChild("HumanoidRootPart")
-            if tgtHum and tgtHum.Health > 0 and tgtRp then
-                punch:Activate()
-                pcall(firetouchinterest, tgtRp, hand, 0)
-                pcall(firetouchinterest, tgtRp, hand, 1)
-            end
+        if plr ~= lp and plr.Character and plr.Character.Humanoid.Health > 0 then
+            punch:Activate()
+            pcall(firetouchinterest, plr.Character.HumanoidRootPart, char.LeftHand or char["Left Arm"], 0)
+            pcall(firetouchinterest, plr.Character.HumanoidRootPart, char.LeftHand or char["Left Arm"], 1)
         end
     end
     
-    local anim = hum:FindFirstChild("Animator")
+    local anim = char.Humanoid.Animator
     if anim then
         for _, trk in pairs(anim:GetPlayingAnimationTracks()) do
-            for _, id in pairs(animIds) do
-                if trk.Animation and trk.Animation.AnimationId == id then
-                    trk:Stop()
-                end
-            end
+            trk:Stop()
         end
     end
 end
