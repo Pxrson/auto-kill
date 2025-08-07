@@ -58,10 +58,6 @@ local function oc(char)
                     p:Activate()
                     firetouchinterest(phrp, hand, 0)
                     firetouchinterest(phrp, hand, 1)
-                    firetouchinterest(phrp, hand, 0)
-                    firetouchinterest(phrp, hand, 1)
-                    firetouchinterest(phrp, hand, 0)
-                    firetouchinterest(phrp, hand, 1)
                 end
             end
         end
@@ -76,8 +72,6 @@ local function oc(char)
                 local p = char:FindFirstChild("Punch")
                 if p then
                     p:Activate()
-                    firetouchinterest(phrp, hand, 0)
-                    firetouchinterest(phrp, hand, 1)
                     firetouchinterest(phrp, hand, 0)
                     firetouchinterest(phrp, hand, 1)
                 end
@@ -96,8 +90,6 @@ local function oc(char)
                     local p = char:FindFirstChild("Punch")
                     if p then
                         p:Activate()
-                        firetouchinterest(phrp, hand, 0)
-                        firetouchinterest(phrp, hand, 1)
                         firetouchinterest(phrp, hand, 0)
                         firetouchinterest(phrp, hand, 1)
                     end
