@@ -20,7 +20,6 @@ local function updateChar()
     if char then
         hum = char:FindFirstChildOfClass("Humanoid")
         hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
-        punch = char:FindFirstChild("Punch")
         anim = hum and (char:FindFirstChildOfClass("Animator") or hum:FindFirstChildOfClass("Animator"))
     end
 end
@@ -38,6 +37,7 @@ rs.RenderStepped:Connect(function()
         return
     end
 
+    punch = char:FindFirstChild("Punch")
     if not punch then
         local tool = lp.Backpack:FindFirstChild("Punch")
         if tool then
@@ -48,32 +48,33 @@ rs.RenderStepped:Connect(function()
                 hum.Health = 0
                 lastRespawn = t
             end
-            return
         end
     end
 
-    punch.attackTime.Value = 0
-    punch:Activate()
+    if punch then
+        punch.attackTime.Value = 0
+        punch:Activate()
 
-    for _, p in ipairs(players:GetPlayers()) do
-        if p ~= lp then
-            local c = p.Character
-            if c and c.Parent then
-                local h = c:FindFirstChildOfClass("Humanoid")
-                local head = c:FindFirstChild("Head")
-                if h and head and h.Health > 0 then
-                    firetouchinterest(head, hand, 0)
-                    firetouchinterest(head, hand, 1)
+        for _, p in ipairs(players:GetPlayers()) do
+            if p ~= lp then
+                local c = p.Character
+                if c and c.Parent then
+                    local h = c:FindFirstChildOfClass("Humanoid")
+                    local head = c:FindFirstChild("Head")
+                    if h and head and h.Health > 0 then
+                        firetouchinterest(head, hand, 0)
+                        firetouchinterest(head, hand, 1)
+                    end
                 end
             end
         end
-    end
 
-    if anim then
-        for _, trk in ipairs(anim:GetPlayingAnimationTracks()) do
-            local a = trk.Animation
-            if a and animIds[a.AnimationId] then
-                trk:Stop()
+        if anim then
+            for _, trk in ipairs(anim:GetPlayingAnimationTracks()) do
+                local a = trk.Animation
+                if a and animIds[a.AnimationId] then
+                    trk:Stop()
+                end
             end
         end
     end
