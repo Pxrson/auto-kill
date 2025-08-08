@@ -11,8 +11,8 @@ local animIds = {
 }
 
 local char, hum, hand, punch, anim = nil,nil,nil,nil,nil
-local targets = {}
 local lastAtk, lastRespawn = 0, 0
+local targets = {}
 
 local function updateChar()
     char = lp.Character
@@ -23,26 +23,6 @@ local function updateChar()
         anim = hum and (char:FindFirstChildOfClass("Animator") or hum:FindFirstChildOfClass("Animator"))
     end
 end
-
-local function trackPlayer(p)
-    local function setChar(c)
-        if c then targets[p] = c end
-    end
-    if p.Character then setChar(p.Character) end
-    p.CharacterAdded:Connect(setChar)
-end
-
-for _, p in ipairs(players:GetPlayers()) do
-    if p ~= lp then trackPlayer(p) end
-end
-
-players.PlayerAdded:Connect(function(p)
-    if p ~= lp then trackPlayer(p) end
-end)
-
-players.PlayerRemoving:Connect(function(p)
-    targets[p] = nil
-end)
 
 lp.CharacterAdded:Connect(updateChar)
 updateChar()
@@ -74,13 +54,16 @@ rs.RenderStepped:Connect(function()
     punch.attackTime.Value = 0
     punch:Activate()
 
-    for p, c in pairs(targets) do
-        if p.Parent and c.Parent then
-            local h = c:FindFirstChildOfClass("Humanoid")
-            local head = c:FindFirstChild("Head")
-            if h and head and h.Health > 0 then
-                firetouchinterest(head, hand, 0)
-                firetouchinterest(head, hand, 1)
+    for _, p in ipairs(players:GetPlayers()) do
+        if p ~= lp then
+            local c = p.Character
+            if c and c.Parent then
+                local h = c:FindFirstChildOfClass("Humanoid")
+                local head = c:FindFirstChild("Head")
+                if h and head and h.Health > 0 then
+                    firetouchinterest(head, hand, 0)
+                    firetouchinterest(head, hand, 1)
+                end
             end
         end
     end
