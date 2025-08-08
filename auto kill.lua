@@ -41,7 +41,7 @@ end
 
 updateCache()
 lp.CharacterAdded:Connect(function()
-    task.wait(0.05)
+    task.wait(0.1)
     updateCache()
 end)
 
@@ -52,7 +52,7 @@ end)
 
 rs.Heartbeat:Connect(function()
     local t = os.clock()
-    if t - lastAttack >= 0.05 then
+    if t - lastAttack >= 0.1 then
         if not hrp or not hum then updateCache() return end
         if not target or not target.Parent or not targetHum or targetHum.Health <= 0 then
             local closest, dist = nil, math.huge
