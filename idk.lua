@@ -1,32 +1,29 @@
 -- discord: .pxrson
-local plrs = game:GetService("Players")
-local tp = game:GetService("TeleportService")
-local rf = game:GetService("ReplicatedFirst")
-local http = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local TeleportService = game:GetService("TeleportService")
+local HttpService = game:GetService("HttpService")
 
 local function hop()
-    local list = http:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")).data
+    local data = HttpService:JSONDecode(game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100")).data
     local servers = {}
-    for _, s in ipairs(list) do
-        if s.playing < s.maxPlayers and s.id ~= game.JobId then
-            servers[#servers+1] = s.id
+    for _, v in ipairs(data) do
+        if v.playing < v.maxPlayers and v.id ~= game.JobId then
+            servers[#servers+1] = v.id
         end
     end
     if #servers > 0 then
-        tp:TeleportToPlaceInstance(game.PlaceId, servers[math.random(#servers)], plrs.LocalPlayer)
+        TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(#servers)], Players.LocalPlayer)
     else
-        tp:Teleport(game.PlaceId, plrs.LocalPlayer)
+        TeleportService:Teleport(game.PlaceId, Players.LocalPlayer)
     end
 end
 
 while true do
-    if #plrs:GetPlayers() < 5 then
-        for _, o in ipairs(rf:GetChildren()) do
-            if o:IsA("Script") or o:IsA("LocalScript") then o:Destroy() end
-        end
+    if #Players:GetPlayers() < 5 then
         hop()
+        break
     else
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/Pxrson/auto-kill/refs/heads/main/auto%20kill.lua",true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Pxrson/auto-kill/refs/heads/main/auto%20kill.lua", true))()
     end
     task.wait(10)
 end
