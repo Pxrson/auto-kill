@@ -20,6 +20,7 @@ local function updateChar()
     if char then
         hum = char:FindFirstChildOfClass("Humanoid")
         hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
+        punch = char:FindFirstChild("Punch")
         anim = hum and (char:FindFirstChildOfClass("Animator") or hum:FindFirstChildOfClass("Animator"))
     end
 end
@@ -37,7 +38,6 @@ rs.RenderStepped:Connect(function()
         return
     end
 
-    punch = char:FindFirstChild("Punch")
     if not punch then
         local tool = lp.Backpack:FindFirstChild("Punch")
         if tool then
