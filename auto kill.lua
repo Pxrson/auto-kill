@@ -40,7 +40,7 @@ plrs.PlayerRemoving:Connect(cachePlayers)
 rs.Heartbeat:Connect(function()
     local t = os.clock()
     if t - lastCache > 3 then cachePlayers() lastCache = t end
-    if t - lastAtk >= 0.05 then
+    if t - lastAtk >= 0.03 then
         if not hrp or not hum or not hand then cacheChar() return end
         if not punch then
             local tool = lp.Backpack:FindFirstChild("Punch")
