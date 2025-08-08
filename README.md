@@ -1,4 +1,4 @@
-## random auto kill ⬇️
+# Random Auto Kill ⬇️
 **disclaimer:**
 1. this is for muscle legends only
 2. for roblox: exploit
