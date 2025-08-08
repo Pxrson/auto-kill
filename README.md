@@ -20,4 +20,4 @@ pxrsonroblox,
 spaghettimeatbaiiz
 
 4. help:
-find help in [my server](https://discord.gg/tAA9bzYyBx)
+find help in [my discord server](https://discord.gg/tAA9bzYyBx)
