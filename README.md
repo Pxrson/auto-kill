@@ -1,7 +1,7 @@
 # Random Auto Kill ⬇️
 **disclaimer:**
-1. this is for muscle legends only
-2. for roblox: exploit
+1. this is for roblox, muscle legends only (EXPLOIT)
+3. beware of ping getting to high, might ruin your grind !!
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/Pxrson/auto-kill/refs/heads/main/idk.lua",true))()
 ```
