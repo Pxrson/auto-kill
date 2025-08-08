@@ -27,7 +27,7 @@ end
 
 updateCache()
 lp.CharacterAdded:Connect(function()
-    task.wait(0.05)
+    task.wait(0.01)
     updateCache()
 end)
 
