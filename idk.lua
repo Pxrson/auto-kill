@@ -1,3 +1,4 @@
+-- discord: .pxrson
 local plrs = game:GetService("Players")
 local tp = game:GetService("TeleportService")
 local rf = game:GetService("ReplicatedFirst")
