@@ -1,7 +1,7 @@
 -- discord: .pxrson
-local plrs = game:GetService("Players")
+local lp = game:GetService("Players").LocalPlayer
 local rs = game:GetService("RunService")
-local lp = plrs.LocalPlayer
+local players = game:GetService("Players")
 
 local animIds = {
     ["rbxassetid://3638729053"] = true,
@@ -10,101 +10,87 @@ local animIds = {
     ["rbxassetid://102357151005774"] = true
 }
 
-local char, hum, hand, punch, anim, hrp, cached = nil,nil,nil,nil,nil,nil,{}
-local lastAtk, lastCache, lastToolCheck = 0, 0, 0
-local cachedPlayers = {}
+local char, hum, hand, punch, anim = nil,nil,nil,nil,nil
+local targets = {}
+local lastAtk, lastRespawn = 0, 0
 
-local function cachePlayers()
-    table.clear(cachedPlayers)
-    for _, p in ipairs(plrs:GetPlayers()) do
-        if p ~= lp and p.Character then
-            cachedPlayers[p] = p.Character
-        end
-    end
-end
-
-local function cacheChar()
+local function updateChar()
     char = lp.Character
     if char then
         hum = char:FindFirstChildOfClass("Humanoid")
         hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
         punch = char:FindFirstChild("Punch")
         anim = hum and (char:FindFirstChildOfClass("Animator") or hum:FindFirstChildOfClass("Animator"))
-        hrp = char:FindFirstChild("HumanoidRootPart")
-    else
-        hum, hand, punch, anim, hrp = nil, nil, nil, nil, nil
     end
 end
 
-cacheChar()
-cachePlayers()
+local function trackPlayer(p)
+    local function setChar(c)
+        if c then targets[p] = c end
+    end
+    if p.Character then setChar(p.Character) end
+    p.CharacterAdded:Connect(setChar)
+end
 
-lp.CharacterAdded:Connect(function() 
-    task.wait(0.1) 
-    cacheChar() 
-    cachePlayers()
+for _, p in ipairs(players:GetPlayers()) do
+    if p ~= lp then trackPlayer(p) end
+end
+
+players.PlayerAdded:Connect(function(p)
+    if p ~= lp then trackPlayer(p) end
 end)
 
-plrs.PlayerAdded:Connect(cachePlayers)
-plrs.PlayerRemoving:Connect(cachePlayers)
+players.PlayerRemoving:Connect(function(p)
+    targets[p] = nil
+end)
 
-rs.Heartbeat:Connect(function()
+lp.CharacterAdded:Connect(updateChar)
+updateChar()
+
+rs.RenderStepped:Connect(function()
     local t = os.clock()
-    
-    if t - lastCache > 5 then 
-        cachePlayers() 
-        lastCache = t 
+    if t - lastAtk < 0.05 then return end
+    lastAtk = t
+
+    if not char or not hum or not hand then
+        updateChar()
+        return
     end
-    
-    if t - lastAtk >= 0.05 then
-        if not char or not hum or not hand or not hrp then 
-            cacheChar() 
-            return 
-        end
-        
-        if not punch and t - lastToolCheck > 0.5 then
-            local tool = lp.Backpack:FindFirstChild("Punch")
-            if tool then 
-                hum:EquipTool(tool) 
-                task.wait(0.1)
-                punch = char:FindFirstChild("Punch")
+
+    if not punch then
+        local tool = lp.Backpack:FindFirstChild("Punch")
+        if tool then
+            hum:EquipTool(tool)
+            punch = char:FindFirstChild("Punch")
+        else
+            if t - lastRespawn > 2 and hum and hum.Health > 0 then
+                hum.Health = 0
+                lastRespawn = t
             end
-            lastToolCheck = t
+            return
         end
-        
-        if not punch then return end
-        
-        punch.attackTime.Value = 0
-        punch:Activate()
-        
-        for player, character in pairs(cachedPlayers) do
-            if player.Parent and character.Parent then
-                local head = character:FindFirstChild("Head")
-                local h = character:FindFirstChildOfClass("Humanoid")
-                
-                if head and h and h.Health > 0 then
-                    firetouchinterest(head, hand, 0)
-                    firetouchinterest(head, hand, 1)
-                end
-            else
-                cachedPlayers[player] = nil
+    end
+
+    punch.attackTime.Value = 0
+    punch:Activate()
+
+    for p, c in pairs(targets) do
+        if p.Parent and c.Parent then
+            local h = c:FindFirstChildOfClass("Humanoid")
+            local head = c:FindFirstChild("Head")
+            if h and head and h.Health > 0 then
+                firetouchinterest(head, hand, 0)
+                firetouchinterest(head, hand, 1)
             end
         end
-        
-        if anim then
-            local tracks = anim:GetPlayingAnimationTracks()
-            for i = 1, #tracks do
-                local trk = tracks[i]
-                local animation = trk.Animation
-                if animation then
-                    local id = animation.AnimationId
-                    if animIds[id] then 
-                        trk:Stop() 
-                    end
-                end
+    end
+
+    if anim then
+        for _, trk in ipairs(anim:GetPlayingAnimationTracks()) do
+            local a = trk.Animation
+            if a and animIds[a.AnimationId] then
+                trk:Stop()
             end
         end
-        
-        lastAtk = t
     end
 end)
