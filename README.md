@@ -13,10 +13,10 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Pxrson/auto-kill/refs
 .pxrson
 
 3. roblox(s):
-NW_GlitcherNu
-KSWalt16
-DrizzyyDrake69
-pxrsonroblox
+NW_GlitcherNu,
+KSWalt16,
+DrizzyyDrake69,
+pxrsonroblox,
 spaghettimeatbaiiz
 
 4. help:
