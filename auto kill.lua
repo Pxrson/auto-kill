@@ -1,4 +1,5 @@
 -- discord: .pxrson
+-- beware of ping getting to high, might ruin your grind !!
 local lp = game:GetService("Players").LocalPlayer
 local rs = game:GetService("RunService")
 local players = game:GetService("Players")
