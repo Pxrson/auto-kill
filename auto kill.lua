@@ -8,8 +8,7 @@ local animIds = {
     ["rbxassetid://3638767427"] = true,
     ["rbxassetid://102357151005774"] = true
 }
-local char, hum, hand, punch, anim
-local players = {}
+local char, hum, hand, punch, anim, hrp
 
 local function updateCache()
     char = lp.Character
@@ -18,65 +17,49 @@ local function updateCache()
         hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
         punch = char:FindFirstChild("Punch")
         anim = hum and char:FindFirstChildOfClass("Animator") or hum and hum:FindFirstChildOfClass("Animator")
+        hrp = char:FindFirstChild("HumanoidRootPart")
     end
 end
 
 updateCache()
 
-for _, p in ipairs(plrs:GetPlayers()) do
-    if p ~= lp then players[#players+1] = p end
-end
-
-plrs.PlayerAdded:Connect(function(p) 
-    players[#players+1] = p
+lp.CharacterAdded:Connect(function()
+    task.wait(0.01)
+    updateCache()
 end)
-plrs.PlayerRemoving:Connect(function(p)
-    for i = #players, 1, -1 do
-        if players[i] == p then
-            table.remove(players, i)
-            break
-        end
-    end
-end)
-
-lp.CharacterAdded:Connect(updateCache)
 
 rs.Heartbeat:Connect(function()
-    if not hum or not hand then 
+    if not hrp or not hum or not hand then 
         updateCache() 
         return 
     end
     
     if not punch then
         local tool = lp.Backpack:FindFirstChild("Punch")
-        if tool then 
-            hum:EquipTool(tool)
-            punch = tool
-        else
-            return
-        end
+        if tool then hum:EquipTool(tool) end
+        punch = char and char:FindFirstChild("Punch")
+        if not punch then return end
     end
     
     punch.attackTime.Value = 0
     punch:Activate()
     
-    for i = 1, #players do
-        local plr = players[i]
-        if plr.Character then
-            local target = plr.Character:FindFirstChild("Head") or plr.Character:FindFirstChild("UpperTorso") or plr.Character:FindFirstChild("Torso")
-            if target then
-                firetouchinterest(target, hand, 0)
-                firetouchinterest(target, hand, 1)
+    for _, plr in ipairs(plrs:GetPlayers()) do
+        if plr ~= lp and plr.Character then
+            local head = plr.Character:FindFirstChild("Head")
+            local h = plr.Character:FindFirstChildOfClass("Humanoid")
+            if head and h and h.Health > 0 then
+                firetouchinterest(head, hand, 0)
+                firetouchinterest(head, hand, 1)
             end
         end
     end
     
     if anim then
-        local tracks = anim:GetPlayingAnimationTracks()
-        for i = 1, #tracks do
-            local track = tracks[i]
-            if track.Animation and animIds[track.Animation.AnimationId] then 
-                track:Stop() 
+        for _, trk in ipairs(anim:GetPlayingAnimationTracks()) do
+            local id = trk.Animation and trk.Animation.AnimationId
+            if id and animIds[id] then 
+                trk:Stop() 
             end
         end
     end
