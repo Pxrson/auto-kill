@@ -10,92 +10,63 @@ local animIds = {
     ["rbxassetid://102357151005774"] = true
 }
 
-local char, hum, hand, punch, anim, hrp
-local lastAttack, lastCache = 0, 0
-local targets = {}
+local char, hum, hand, punch, anim, hrp, cached, lastAtk, lastCache = nil,nil,nil,nil,nil,nil,{},0,0
 
-local function updateCache()
+local function cacheChar()
     char = lp.Character
     if char then
         hum = char:FindFirstChildOfClass("Humanoid")
         hand = char:FindFirstChild("LeftHand") or char:FindFirstChild("Left Arm")
         punch = char:FindFirstChild("Punch")
-        anim = hum and char:FindFirstChildOfClass("Animator") or hum and hum:FindFirstChildOfClass("Animator")
+        anim = hum and (char:FindFirstChildOfClass("Animator") or hum:FindFirstChildOfClass("Animator"))
         hrp = char:FindFirstChild("HumanoidRootPart")
     end
 end
 
-local function updateTargets()
-    local count = 0
-    for _, plr in ipairs(plrs:GetPlayers()) do
-        if plr ~= lp and plr.Character then
-            local head = plr.Character:FindFirstChild("Head")
-            local h = plr.Character:FindFirstChildOfClass("Humanoid")
-            if head and h and h.Health > 0 then
-                count = count + 1
-                targets[count] = {head, h}
-            end
-        end
-    end
-    for i = count + 1, #targets do
-        targets[i] = nil
+local function cachePlayers()
+    cached = {}
+    for _, p in ipairs(plrs:GetPlayers()) do
+        if p ~= lp then table.insert(cached, p) end
     end
 end
 
-updateCache()
-updateTargets()
+cacheChar()
+cachePlayers()
 
-lp.CharacterAdded:Connect(function()
-    task.wait(0.05)
-    updateCache()
-end)
-
-plrs.PlayerAdded:Connect(updateTargets)
-plrs.PlayerRemoving:Connect(updateTargets)
+lp.CharacterAdded:Connect(function() task.wait(0.1) cacheChar() end)
+plrs.PlayerAdded:Connect(cachePlayers)
+plrs.PlayerRemoving:Connect(cachePlayers)
 
 rs.Heartbeat:Connect(function()
     local t = os.clock()
-    
-    if t - lastCache >= 5 then
-        updateTargets()
-        lastCache = t
-    end
-    
-    if t - lastAttack >= 0.01 then
-        if not hrp or not hum or not hand then 
-            updateCache() 
-            return 
-        end
-        
+    if t - lastCache > 3 then cachePlayers() lastCache = t end
+    if t - lastAtk >= 0.05 then
+        if not hrp or not hum or not hand then cacheChar() return end
         if not punch then
             local tool = lp.Backpack:FindFirstChild("Punch")
             if tool then hum:EquipTool(tool) end
             punch = char and char:FindFirstChild("Punch")
             if not punch then return end
         end
-        
         punch.attackTime.Value = 0
         punch:Activate()
-        
-        for i = 1, #targets do
-            local target = targets[i]
-            if target[2].Health > 0 then
-                firetouchinterest(target[1], hand, 0)
-                firetouchinterest(target[1], hand, 1)
-            end
-        end
-        
-        if anim then
-            local tracks = anim:GetPlayingAnimationTracks()
-            for i = 1, #tracks do
-                local trk = tracks[i]
-                local id = trk.Animation and trk.Animation.AnimationId
-                if id and animIds[id] then 
-                    trk:Stop() 
+        for _, p in ipairs(cached) do
+            local pc = p.Character
+            if pc then
+                local head = pc:FindFirstChild("Head")
+                local h = pc:FindFirstChildOfClass("Humanoid")
+                if head and h and h.Health > 0 then
+                    firetouchinterest(head, hand, 0)
+                    firetouchinterest(head, hand, 1)
                 end
             end
         end
-        
-        lastAttack = t
+        if anim then
+            for _, trk in ipairs(anim:GetPlayingAnimationTracks()) do
+                local id = trk.Animation and trk.Animation.AnimationId
+                if id and animIds[id] then trk:Stop() end
+            end
+        end
+        lastAtk = t
     end
 end)
