@@ -42,7 +42,7 @@ players.PlayerRemoving:Connect(updateAll)
 rs.RenderStepped:Connect(function()
     local tm = os.clock()
     
-    if tm - lastAtk < 0.03 then return end
+    if tm - lastAtk < 0.05 then return end
     lastAtk = tm
     
     if not chr or not hum or tm - lastChk > 1 then
