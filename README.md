@@ -9,15 +9,5 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/Pxrson/auto-kill/refs
 ---
 
 **info:**
-1. discord:
-.pxrson
-
-3. roblox(s):
-NW_GlitcherNu,
-KSWalt16,
-DrizzyyDrake69,
-pxrsonroblox,
-spaghettimeatbaiiz
-
-4. help:
-find help in [my discord server](https://discord.gg/tAA9bzYyBx)
+1. btw you can find my socials by going thru [MY GITHUB](https://github.com/Pxrson)
+2. find help in [my discord server](https://discord.gg/tAA9bzYyBx)
